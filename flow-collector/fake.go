@@ -40,38 +40,44 @@ type Flow struct {
 
 // OutputFlow is ...
 type OutputFlow struct {
-	Duration                int64 `json:"duration"`
-	PacketCount             int   `json:"packet_count"`
-	TotalPayloadByte        int   `json:"total_payload_byte"`
-	AppplicationPayloadByte int   `json:"application_payload_byte"`
-	Ipv4                    bool  `json:"ipv4"`
-	Ipv6                    bool  `json:"ipv6"`
-	TCP                     bool  `json:"tcp"`
-	UDP                     bool  `json:"udp"`
-	HTTPS                   bool  `json:"https"`
-	HTTP                    bool  `json:"http"`
-	DNS                     bool  `json:"dns"`
-	NTP                     bool  `json:"ntp"`
-	Stun                    bool  `json:"stun"`
-	DstPort49152            bool  `json:"dst_port_49152"`
-	DstPort49153            bool  `json:"dst_port_49153"`
-	WsDiscovery             bool  `json:"ws_discovery"`
-	UpnpEvnt                bool  `json:"upnp_evnt"`
-	XMPP                    bool  `json:"xmpp"`
-	SSDP                    bool  `json:"ssdp"`
-	SMTPSSL                 bool  `json:"smtp_ssl"`
-	DstPort25050            bool  `json:"dst_port_25050"`
-	DstPort49154            bool  `json:"dst_port_49154"`
-	Android                 bool  `json:"andriod"`
-	IMAPSSL                 bool  `json:"imap_ssl"`
-	StmPproc                bool  `json:"stm_pproc"`
-	DHCPServer              bool  `json:"dhcp_server"`
-	Icslap                  bool  `json:"icslap"`
-	SrcPort49152            bool  `json:"src_port_49152"`
-	SrcPort49153            bool  `json:"src_port_49153"`
-	WellKnownDstPort        bool  `json:"well_known_dstPort"`
-	EphemeralDstPort        bool  `json:"ephemeral_dst_port"`
-	RegistedDstPort         bool  `json:"registed_dst_port"`
+	TimeStampFirst          int64  `json:"time_stamp_first"`
+	TimeStampLast           int64  `json:"time_stamp_last"`
+	SrcIP                   string `json:"src_ip"`
+	DstIP                   string `json:"dst_ip"`
+	SrcPort                 string `json:"src_port"`
+	DstPort                 string `json:"dst_port"`
+	Duration                int64  `json:"duration"`
+	PacketCount             int    `json:"packet_count"`
+	TotalPayloadByte        int    `json:"total_payload_byte"`
+	AppplicationPayloadByte int    `json:"application_payload_byte"`
+	Ipv4                    bool   `json:"ipv4"`
+	Ipv6                    bool   `json:"ipv6"`
+	TCP                     bool   `json:"tcp"`
+	UDP                     bool   `json:"udp"`
+	HTTPS                   bool   `json:"https"`
+	HTTP                    bool   `json:"http"`
+	DNS                     bool   `json:"dns"`
+	NTP                     bool   `json:"ntp"`
+	Stun                    bool   `json:"stun"`
+	DstPort49152            bool   `json:"dst_port_49152"`
+	DstPort49153            bool   `json:"dst_port_49153"`
+	WsDiscovery             bool   `json:"ws_discovery"`
+	UpnpEvnt                bool   `json:"upnp_evnt"`
+	XMPP                    bool   `json:"xmpp"`
+	SSDP                    bool   `json:"ssdp"`
+	SMTPSSL                 bool   `json:"smtp_ssl"`
+	DstPort25050            bool   `json:"dst_port_25050"`
+	DstPort49154            bool   `json:"dst_port_49154"`
+	Android                 bool   `json:"android"`
+	IMAPSSL                 bool   `json:"imap_ssl"`
+	StmPproc                bool   `json:"stm_pproc"`
+	DHCPServer              bool   `json:"dhcp_server"`
+	Icslap                  bool   `json:"icslap"`
+	SrcPort49152            bool   `json:"src_port_49152"`
+	SrcPort49153            bool   `json:"src_port_49153"`
+	WellKnownDstPort        bool   `json:"well_known_dst_port"`
+	EphemeralDstPort        bool   `json:"ephemeral_dst_port"`
+	RegistedDstPort         bool   `json:"registed_dst_port"`
 }
 
 var timeOut int64 = 30 * 1000
@@ -94,6 +100,11 @@ func addDataFromLayerToFlow(packet gopacket.Packet, flow *Flow) {
 
 func convertFlowToOutputFlow(f *Flow) OutputFlow {
 	opf := OutputFlow{}
+	fmt.Println(f.srcIP, f.dstIP)
+	opf.SrcIP = f.srcIP
+	opf.DstIP = f.dstIP
+	opf.SrcPort = f.srcPort
+	opf.DstPort = f.dstPort
 	opf.Duration = f.duration
 	opf.PacketCount = f.packetCount
 	opf.TotalPayloadByte = f.totalPayloadByte
@@ -251,6 +262,7 @@ func main() {
 	flowMap := map[string]Flow{}
 	flowCounter := 0
 
+	// L1:
 	for packet := range packetSource.Packets() {
 
 		nl := packet.NetworkLayer()
@@ -316,6 +328,7 @@ func main() {
 									ContentType: "application/json",
 									Body:        b,
 								})
+							// break L1
 
 							delete(flowMap, flowKey)
 						}
