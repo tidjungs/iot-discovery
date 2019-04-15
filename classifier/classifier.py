@@ -5,20 +5,51 @@ from pymongo import MongoClient
 client = MongoClient()
 db = client.flow_database
 
-model = joblib.load("saved_model_minimized.pkl")
+binary_model = joblib.load("binary_classify_model.pkl")
+multiclass_model = joblib.load("multiclass_classify_model.pkl")
 
 credentials = pika.PlainCredentials('root', 'root')
 connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost', credentials=credentials))
 channel = connection.channel()
 channel.queue_declare(queue='flow-queue')
 
+device_names = [
+  'Belkin wemo motion sensor',
+  'Belkin Wemo switch',
+  'Samsung SmartCam',
+  'Amazon Echo',
+  'Insteon Camera',
+  'Light Bulbs LiFX Smart Bulb',
+  'Withings Smart Baby Monitor',
+  'Netatmo Welcome',
+  'Withings Aura smart sleep sensor',
+  'Netatmo weather station',
+  'TP-Link Day Night Cloud camera',
+  'PIX-STAR Photo-frame',
+  'HP Printer',
+  'Triby Speaker',
+]
+
 features = [
+  'dns',
+  'dhcp_server',
   'http',
   'ntp',
   'https',
   'smtp_ssl',
+  'imap_ssl',
+  'ssdp',
+  'icslap',
+  'stm_pproc',
+  'stun',
   'ws_discovery',
   'upnp_evnt',
+  'xmpp',
+  'android',
+  'dstPort25050',
+  'dstPort49152',
+  'dstPort49153',
+  'dstPort49154',
   'src_port_49152',
   'src_port_49153',
   'ephemeral_dst_port',
@@ -32,8 +63,17 @@ features = [
   'total_payload_byte',
   'application_payload_byte'
 ]
+print(len(features))
 
 service_destination_port_mappers = [
+  {
+    'name': 'dns',
+    'port': '53'
+  },
+  {
+    'name': 'dhcp_server',
+    'port': '67'
+  },
   {
     'name': 'http',
     'port': '80'
@@ -43,12 +83,32 @@ service_destination_port_mappers = [
     'port': '123'
   },
   {
+    'name': 'https',
+    'port': '443'
+  },
+  {
     'name': 'smtp_ssl',
     'port': '465'
   },
   {
-    'name': 'https',
-    'port': '443'
+    'name': 'imap_ssl',
+    'port': '993'
+  },
+  {
+    'name': 'ssdp',
+    'port': '1900'
+  },
+  {
+    'name': 'icslap',
+    'port': '2869'
+  },
+  {
+    'name': 'stm_pproc',
+    'port': '3080'
+  },
+  {
+    'name': 'stun',
+    'port': '3478'
   },
   {
     'name': 'ws_discovery',
@@ -57,6 +117,30 @@ service_destination_port_mappers = [
   {
     'name': 'upnp_evnt',
     'port': '5000'
+  },
+  {
+    'name': 'xmpp',
+    'port': '5222'
+  },
+  {
+    'name': 'android',
+    'port': '5228'
+  },
+  {
+    'name': 'dstPort25050',
+    'port': '25050'
+  },
+  {
+    'name': 'dstPort49152',
+    'port': '49152'
+  },
+  {
+    'name': 'dstPort49153',
+    'port': '49153'
+  },
+  {
+    'name': 'dstPort49154',
+    'port': '49154'
   }
 ]
 
@@ -129,11 +213,19 @@ def callback(ch, method, properties, body):
   x = []
   for feature in features:
     x.append(preprocessed_flow[feature])
-  result = model.predict([x])
-  flow["iot"] = result[0].item()
-  flows = db.flows
-  flows.insert_one(flow)
-  print(flow['src_ip'], result[0])
+  result_binary_model = binary_model.predict([x])
+
+  if result_binary_model[0].item() == 1:
+    result_multiclass_model = multiclass_model.predict([x])
+    device_index = result_multiclass_model[0].item()
+    print(flow['src_ip'], result_binary_model[0], device_names[device_index])
+  else:
+    print(flow['src_ip'], result_binary_model[0])
+
+  # flow["iot"] = result[0].item()
+  # flows = db.flows
+  # flows.insert_one(flow)
+
 
 channel.basic_consume(
   queue='flow-queue', on_message_callback=callback, auto_ack=True)
