@@ -215,16 +215,18 @@ def callback(ch, method, properties, body):
     x.append(preprocessed_flow[feature])
   result_binary_model = binary_model.predict([x])
 
-  if result_binary_model[0].item() == 1:
+  flow["iot"] = result_binary_model[0].item()
+  flow["device_name"] = ""
+
+  if flow["iot"] == 1:
     result_multiclass_model = multiclass_model.predict([x])
     device_index = result_multiclass_model[0].item()
-    print(flow['src_ip'], result_binary_model[0], device_names[device_index])
-  else:
-    print(flow['src_ip'], result_binary_model[0])
+    flow["device_name"] = device_names[device_index]
 
-  # flow["iot"] = result[0].item()
-  # flows = db.flows
-  # flows.insert_one(flow)
+  print(flow["src_ip"], flow["iot"], flow["device_name"])
+
+  flows = db.flows
+  flows.insert_one(flow)
 
 
 channel.basic_consume(
