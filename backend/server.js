@@ -25,6 +25,41 @@ fastify.get('/flow', async (request, reply) => {
   return flowController.getFlows()
 })
 
+fastify.get('/time', async (request, reply) => {
+  const timeAggregate = await Flow.aggregate(
+    [
+      {
+        $group: {
+          "_id": {
+            "$dateToString": {
+              "format": "%m %d %Y %H:00",
+              "date": {
+                "$add": [
+                  new Date(0),
+                  "$time_stamp_first"
+                ]
+              }
+            }
+          },
+          // "count": { "$sum": 1 },
+          "count_iot": {
+            "$sum": { $cond: [{ "$eq": ["$iot", 1] }, 1, 0] }
+          },
+          "count_non_iot": {
+            "$sum": { $cond: [{ "$eq": ["$iot", 0] }, 1, 0] }
+          },
+        }
+      }
+    ])
+
+  const sortedTimeAggregate = timeAggregate
+    .sort((a, b) => {
+      return new Date(a._id) - new Date(b._id)
+    })
+
+  return sortedTimeAggregate
+})
+
 fastify.get('/sum/flow', async (request, reply) => {
 
   const sumByIot = await Flow.aggregate(
