@@ -20,8 +20,8 @@ export default class Example extends PureComponent {
         <YAxis />
         <Tooltip />
         <Legend />
-        <Bar dataKey="IOT" fill="#8884d8" barSize={40} />
-        <Bar dataKey="NON-IOT" fill="#82ca9d" barSize={40} />
+        <Bar dataKey="IOT" fill="#3498db" barSize={10} />
+        {/* <Bar dataKey="NON-IOT" fill="#82ca9d" barSize={40} /> */}
       </BarChart>
     );
   }
