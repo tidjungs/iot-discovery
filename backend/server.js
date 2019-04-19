@@ -57,7 +57,10 @@ fastify.get('/time', async (request, reply) => {
       return new Date(a._id) - new Date(b._id)
     })
 
-  return sortedTimeAggregate
+  return sortedTimeAggregate.map(t => ({
+    ...t,
+    _id: new Date(t._id).toUTCString(),
+  }))
 })
 
 fastify.get('/sum/flow', async (request, reply) => {
