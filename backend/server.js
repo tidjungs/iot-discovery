@@ -28,7 +28,9 @@ fastify.get('/flow', async (request, reply) => {
   return flowController.getFlows()
 })
 
-fastify.get('/time', async (request, reply) => {
+// fastify.get('/flow/time-series')
+
+fastify.get('/flow/time-series', async (request, reply) => {
   const timeAggregate = await Flow.aggregate(
     [
       {
@@ -48,8 +50,20 @@ fastify.get('/time', async (request, reply) => {
           "count_iot": {
             "$sum": { $cond: [{ "$eq": ["$iot", 1] }, 1, 0] }
           },
+          "iot_bytes": {
+            "$sum": { $cond: [{ "$eq": ["$iot", 1] }, "$total_payload_byte", 0] }
+          },
+          "iot_packets": {
+            "$sum": { $cond: [{ "$eq": ["$iot", 1] }, "$packet_count", 0] }
+          },
           "count_non_iot": {
             "$sum": { $cond: [{ "$eq": ["$iot", 0] }, 1, 0] }
+          },
+          "non_iot_bytes": {
+            "$sum": { $cond: [{ "$eq": ["$iot", 0] }, "$total_payload_byte", 0] }
+          },
+          "non_iot_packets": {
+            "$sum": { $cond: [{ "$eq": ["$iot", 0] }, "$packet_count", 0] }
           },
         }
       }
@@ -60,10 +74,11 @@ fastify.get('/time', async (request, reply) => {
       return new Date(a._id) - new Date(b._id)
     })
 
-  return sortedTimeAggregate.map(t => ({
-    ...t,
-    _id: new Date(t._id).toUTCString(),
-  }))
+  return sortedTimeAggregate
+    .map(t => ({
+      ...t,
+      _id: new Date(t._id).toUTCString(),
+    }))
 })
 
 fastify.get('/sum/flow', async (request, reply) => {
