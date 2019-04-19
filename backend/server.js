@@ -1,8 +1,11 @@
 const mongoose = require('mongoose')
 const flowController = require('./controllers/flowController')
+const cors = require('cors')
 const fastify = require('fastify')({
   logger: true
 })
+
+fastify.use(cors())
 
 const Flow = require('./models/Flow')
 
