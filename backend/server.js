@@ -81,7 +81,7 @@ fastify.get('/flow/time-series', async (request, reply) => {
     }))
 })
 
-fastify.get('/sum/flow', async (request, reply) => {
+fastify.get('/flow/stat', async (request, reply) => {
 
   const sumByIot = await Flow.aggregate(
     [
@@ -97,13 +97,24 @@ fastify.get('/sum/flow', async (request, reply) => {
             $sum:
               { $cond: [{ "$eq": ["$iot", 0] }, 1, 0] }
           },
+          iot_ip_set: {
+            $addToSet: {
+              $cond: [{ "$eq": ["$iot", 1] }, "$src_ip", null]
+            }
+          },
+          non_iot_ip_set: {
+            $addToSet: {
+              $cond: [{ "$eq": ["$iot", 0] }, "$src_ip", null]
+            }
+          },
+          device_set: {
+            $addToSet: "$device_name"
+          }
         }
       },
       { $project: { _id: 0 } }
     ]
   )
-
-
 
   const sumByDevice = await Flow.aggregate(
     [
@@ -115,12 +126,23 @@ fastify.get('/sum/flow', async (request, reply) => {
       }
     ]
   )
+  const sumByIotReplaceIPSet = {
+    ...sumByIot[0],
+    iot_ip_count: sumByIot[0].iot_ip_set.length - 1,
+    non_iot_ip_count: sumByIot[0].non_iot_ip_set.length - 1,
+    device_count: sumByIot[0].device_set.length - 1
+  }
 
   const sumByDeviceClean = sumByDevice.filter(device => device._id != "")
+  const sortedSumByDeviceClean = sumByDeviceClean
+    .sort((a, b) => {
+      return b.count - a.count
+    })
+
 
   return {
-    ...sumByIot[0],
-    devices: sumByDeviceClean
+    ...sumByIotReplaceIPSet,
+    devices: sortedSumByDeviceClean
   }
 })
 
