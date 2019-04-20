@@ -1,10 +1,11 @@
-import React, { Component } from 'react';
+import React, { Component } from 'react'
 // import StackedBarChart from './components/StackedBarChart'
 import SimpleBarChart from './components/SimpleBarChart'
 import SimpleLineChart from './components/SimpleLineChart'
+import Card from './components/Card'
 // import LineChart from './components/LineChart'
 
-import './App.css';
+import './App.css'
 
 const dsrPortFlows = [
   {
@@ -97,6 +98,7 @@ class App extends Component {
   async loadData() {
     const response = await fetch("http://localhost:8000/flow/time-series")
     const data = await response.json()
+    console.log(data)
 
     const flowTimeSerieData = data.map(d => {
       return {
@@ -133,8 +135,6 @@ class App extends Component {
     })
 
 
-    console.log(deviceTimeSerieData)
-
     this.setState({
       statistic: {
         ...jsonStat,
@@ -147,50 +147,43 @@ class App extends Component {
     })
   }
 
-  getStatisticByKey = key => this.state.statistic !== null ? this.state.statistic[key] : ""
+  getStatisticByKey = key => this.state.statistic !== null ? this.state.statistic[key] : "0"
 
   render() {
     return (
       <div className="main-container">
-        <p className="main-title">Analytics Overview</p>
+        <p className="main-title" style={{ fontSize: '24px' }}>Analytics Overview</p>
         <div className="card-container">
-          <div className="card">
-            <div>
-              <p className="card-title">{this.getStatisticByKey("flow_count")}</p>
-              <p className="card-sub-title">Total Flows</p>
-            </div>
-          </div>
-          <div className="card">
-            <div>
-              <p className="card-title">{this.getStatisticByKey("classify_iot")}</p>
-              <p className="card-sub-title">Total IOT Flows</p>
-            </div>
-          </div>
-          <div className="card">
-            <div>
-              <p className="card-title">{this.getStatisticByKey("classify_not_iot")}</p>
-              <p className="card-sub-title">Total NON-IOT Flows</p>
-            </div>
-          </div>
-          <div className="card">
-            <div>
-              <p className="card-title">{this.getStatisticByKey("iot_ip_count")}</p>
-              <p className="card-sub-title">Total IOT IP Address</p>
-            </div>
-          </div>
-
-          <div className="card">
-            <div>
-              <p className="card-title">{this.getStatisticByKey("non_iot_ip_count")}</p>
-              <p className="card-sub-title">Total NON-IOT IP Address</p>
-            </div>
-          </div>
-          <div className="card">
-            <div>
-              <p className="card-title">{this.getStatisticByKey("device_count")}</p>
-              <p className="card-sub-title">IOT Devices Detected</p>
-            </div>
-          </div>
+          <Card
+            number={this.getStatisticByKey("flow_count")}
+            subTitle="Total Flows"
+          // color="#6C7A89"
+          />
+          <Card
+            number={this.getStatisticByKey("classify_iot")}
+            subTitle="Total IOT Flows"
+            color="#1F4788"
+          />
+          <Card
+            number={this.getStatisticByKey("classify_not_iot")}
+            subTitle="Total NON-IOT Flows"
+            color="#1F4788"
+          />
+          <Card
+            number={this.getStatisticByKey("iot_ip_count")}
+            subTitle="Total IOT IP Address"
+            color="#4B77BE"
+          />
+          <Card
+            number={this.getStatisticByKey("non_iot_ip_count")}
+            subTitle="Total NON-IOT IP Address"
+            color="#4B77BE"
+          />
+          <Card
+            number={this.getStatisticByKey("device_count")}
+            subTitle="IOT Devices Detected"
+          // color="#6C7A89"
+          />
         </div>
         <div className="chart-container">
           <p className="main-title" >IOT & NON-IOT Flows</p>
@@ -273,6 +266,7 @@ class App extends Component {
               <SimpleBarChart
                 data={this.state.deviceTimeSerieData}
                 yLabel="flow count"
+                color="#f1c40f"
               />
             )
           }

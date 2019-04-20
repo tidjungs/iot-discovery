@@ -23,12 +23,12 @@ export default class Chart extends Component {
 
         <XAxis
           dataKey="name"
-          stroke="#e0e0e0"
+          stroke="#a5a5a5"
           tick={{ fontSize: '12px', transform: 'translate(0, 12)' }}
         />
 
         <YAxis
-          stroke="#e0e0e0"
+          stroke="#a5a5a5"
           tick={{ fontSize: '12px', transform: 'translate(-12, 0)' }}
 
         >
