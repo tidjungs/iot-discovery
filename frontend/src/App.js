@@ -157,32 +157,38 @@ class App extends Component {
           <Card
             number={this.getStatisticByKey("flow_count")}
             subTitle="Total Flows"
+            icon="flow"
           // color="#6C7A89"
           />
           <Card
             number={this.getStatisticByKey("classify_iot")}
             subTitle="Total IOT Flows"
             color="#1F4788"
+            icon="iot"
           />
           <Card
             number={this.getStatisticByKey("classify_not_iot")}
             subTitle="Total NON-IOT Flows"
             color="#1F4788"
+            icon="non-iot"
           />
           <Card
             number={this.getStatisticByKey("iot_ip_count")}
             subTitle="Total IOT IP Address"
             color="#4B77BE"
+            icon="iot"
           />
           <Card
             number={this.getStatisticByKey("non_iot_ip_count")}
             subTitle="Total NON-IOT IP Address"
             color="#4B77BE"
+            icon="non-iot"
           />
           <Card
             number={this.getStatisticByKey("device_count")}
             subTitle="IOT Devices Detected"
-          // color="#6C7A89"
+            // color="#6C7A89"
+            icon="device"
           />
         </div>
         <div className="chart-container">
