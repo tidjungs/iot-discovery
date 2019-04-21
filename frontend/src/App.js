@@ -87,7 +87,7 @@ class App extends Component {
   render() {
     return (
       <div className="main-container">
-        <p className="main-title" style={{ fontSize: '24px' }}>Analytics Overview</p>
+        <p className="main-title" style={{ fontSize: '32px' }}>Analytics Overview</p>
         <div className="card-container">
           <Card
             number={this.getStatisticByKey("flow_count")}
