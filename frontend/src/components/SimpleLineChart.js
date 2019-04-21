@@ -35,7 +35,9 @@ export default class Chart extends Component {
           <Label fill="#e0e0e0" offset={20} value={this.props.yLabel} position="top" />
         </YAxis>
 
-        <Tooltip />
+        <Tooltip
+          contentStyle={{ background: "#1e2b38" }}
+        />
 
         <Legend verticalAlign="top" iconSize={24} />
         {

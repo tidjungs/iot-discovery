@@ -93,37 +93,44 @@ class App extends Component {
             number={this.getStatisticByKey("flow_count")}
             subTitle="Total Flows"
             icon="flow"
-          // color="#6C7A89"
+            color="#142f59"
+            fontColor="white"
           />
           <Card
             number={this.getStatisticByKey("classify_iot")}
             subTitle="Total IOT Flows"
             color="#1F4788"
             icon="iot"
+            fontColor="white"
           />
           <Card
             number={this.getStatisticByKey("classify_not_iot")}
             subTitle="Total NON-IOT Flows"
-            color="#1F4788"
+            color="#2d64bc"
             icon="non-iot"
+            fontColor="white"
           />
           <Card
             number={this.getStatisticByKey("iot_ip_count")}
             subTitle="Total IOT IP Address"
             color="#4B77BE"
             icon="iot"
+            fontColor="black"
           />
           <Card
             number={this.getStatisticByKey("non_iot_ip_count")}
             subTitle="Total NON-IOT IP Address"
-            color="#4B77BE"
+            color="#72aee0"
             icon="non-iot"
+            fontColor="black"
           />
           <Card
             number={this.getStatisticByKey("device_count")}
             subTitle="IOT Devices Detected"
-            // color="#6C7A89"
+            color="#89C4F4"
             icon="device"
+            fontColor="black"
+
           />
         </div>
         <div className="chart-container">
@@ -138,7 +145,7 @@ class App extends Component {
                 keys={[
                   {
                     name: "iot",
-                    color: "#806cfa",
+                    color: "#e74c3c",
                   },
                   {
                     name: "non-iot",
@@ -165,7 +172,7 @@ class App extends Component {
                   keys={[
                     {
                       name: "iot",
-                      color: "#806cfa",
+                      color: "#e74c3c",
                     },
                     {
                       name: "non-iot",
@@ -188,7 +195,7 @@ class App extends Component {
                   keys={[
                     {
                       name: "iot",
-                      color: "#806cfa",
+                      color: "#e74c3c",
                     },
                     {
                       name: "non-iot",
@@ -207,7 +214,7 @@ class App extends Component {
               <SimpleBarChart
                 data={this.state.deviceTimeSerieData}
                 yLabel="flow count"
-                color="#f1c40f"
+                color="#eebb2d"
               />
             )
           }

@@ -12,7 +12,8 @@ p {
 .card {
   width: 200px;
   height: 200px;
-  background-color: #576574;
+  background-color: none;
+  /* border: 2px solid white; */
   /* background-color: white; */
   border-radius: 5px;
   display: flex;
@@ -32,7 +33,7 @@ p {
 
 
 .card-sub-title  {
-  font-size: 12px;
+  font-size: 14px;
   color: #e0e0e0;
   text-align: center;
   /* color: #95a5a6; */
