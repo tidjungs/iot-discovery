@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const flowController = require('./controllers/flowController')
 const cors = require('cors')
 const fastify = require('fastify')({
   logger: true
@@ -13,22 +12,9 @@ mongoose.connect("mongodb://localhost/flow_database")
   .then(() => console.log("MongoDB connected…"))
   .catch(err => console.log(err))
 
-// fastify.register(require('./first-route'))
-// fastify.route({
-//   method: 'GET',
-//   url: '/api/flows',
-//   handler: flowController.getFlowss
-// })
-
 fastify.get('/', async (request, reply) => {
   return { 'message': 'May the force be with you.' }
 })
-
-fastify.get('/flow', async (request, reply) => {
-  return flowController.getFlows()
-})
-
-// fastify.get('/flow/time-series')
 
 fastify.get('/flow/time-series', async (request, reply) => {
   const timeAggregate = await Flow.aggregate(
