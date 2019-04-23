@@ -22,8 +22,8 @@ export default class Chart extends Component {
         <defs>
           {
             this.props.keys.map(key =>
-              <linearGradient id={`color${key.color}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={key.color} stopOpacity={0.6} />
+              <linearGradient id={`color${key.color}`} key={key.name} x1="0" y1="0" x2="0" y2="1" >
+                <stop offset="5%" stopColor={key.color} stopOpacity={0} />
                 <stop offset="95%" stopColor={key.color} stopOpacity={0} />
               </linearGradient>
             )
@@ -53,6 +53,7 @@ export default class Chart extends Component {
         {
           this.props.keys.map(key =>
             <Area
+              key={key.name}
               dot={false}
               strokeWidth={3}
               dataKey={key.name}

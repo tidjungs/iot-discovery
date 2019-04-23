@@ -28,12 +28,9 @@ class App extends Component {
     return `${date.getHours()}:00  ${date.getDate()} ${monthNames[date.getMonth()]}`
   }
 
-
-
   async loadData() {
     const response = await fetch("/flow/time-series/1474500000000/1474800000000")
     const data = await response.json()
-    console.log(data)
 
     const flowTimeSerieData = data.map(d => {
       return {
@@ -59,7 +56,7 @@ class App extends Component {
       }
     })
 
-    const responseStat = await fetch("/flow/stat")
+    const responseStat = await fetch("/flow/stat/1474500000000/1474800000000")
     const jsonStat = await responseStat.json()
 
     const deviceTimeSerieData = jsonStat.devices.map(device => {
@@ -214,7 +211,7 @@ class App extends Component {
               <SimpleBarChart
                 data={this.state.deviceTimeSerieData}
                 yLabel="flow count"
-                color="#eebb2d"
+                color="#e67e22"
               />
             )
           }

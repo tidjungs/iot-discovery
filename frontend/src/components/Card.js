@@ -23,7 +23,7 @@ const Card = ({ number, subTitle, color, icon, fontColor }) => {
         <p className="card-title" style={{ color: fontColor }}>
           <CountUp
             duration={2.75}
-            end={number}
+            end={parseInt(number, 10)}
           />
         </p>
         <p className="card-sub-title" style={{ color: fontColor }}>{subTitle}</p>
