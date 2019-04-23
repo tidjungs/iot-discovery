@@ -92,7 +92,7 @@ func main() {
 	flowCounter := 0
 	successCount := 0
 
-L1:
+	// L1:
 	for packet := range packetSource.Packets() {
 
 		nl := packet.NetworkLayer()
@@ -157,9 +157,9 @@ L1:
 									ContentType: "application/json",
 									Body:        b,
 								})
-							if successCount == 20 {
-								break L1
-							}
+							// if successCount == 1000 {
+							// 	break L1
+							// }
 							delete(flowMap, flowKey)
 							successCount++
 						}
