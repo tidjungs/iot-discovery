@@ -31,7 +31,7 @@ class App extends Component {
 
 
   async loadData() {
-    const response = await fetch("http://localhost:8000/flow/time-series")
+    const response = await fetch("/flow/time-series/1474500000000/1474800000000")
     const data = await response.json()
     console.log(data)
 
@@ -59,7 +59,7 @@ class App extends Component {
       }
     })
 
-    const responseStat = await fetch("http://localhost:8000/flow/stat")
+    const responseStat = await fetch("/flow/stat")
     const jsonStat = await responseStat.json()
 
     const deviceTimeSerieData = jsonStat.devices.map(device => {
