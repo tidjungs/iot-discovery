@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
+	"github.com/streadway/amqp"
 )
 
 var (
@@ -20,19 +22,19 @@ var (
 
 // Flow is ...
 type Flow struct {
-	timeStampFirst          int64
-	timeStampLast           int64
-	duration                int64
-	networkProtocol         string
-	transportProtocol       string
-	applicationProtocol     string
-	srcIP                   string
-	dstIP                   string
-	srcPort                 string
-	dstPort                 string
-	packetCount             int
-	totalPayloadByte        int
-	appplicationPayloadByte int
+	TimeStampFirst         int64  `json:"time_stamp_first"`
+	TimeStampLast          int64  `json:"time_stamp_last"`
+	Duration               int64  `json:"duration"`
+	NetworkProtocol        string `json:"network_protocol"`
+	TransportProtocol      string `json:"transport_protocol"`
+	ApplicationProtocol    string `json:"application_protocol"`
+	SrcIP                  string `json:"src_ip"`
+	DstIP                  string `json:"dst_ip"`
+	SrcPort                string `json:"src_port"`
+	DstPort                string `json:"dst_port"`
+	PacketCount            int    `json:"packet_count"`
+	TotalPayloadByte       int    `json:"total_payload_byte"`
+	ApplicationPayloadByte int    `json:"application_payload_byte"`
 }
 
 var timeOut int64 = 30 * 1000
@@ -41,19 +43,40 @@ var flushTime = 2000
 func addDataFromLayerToFlow(packet gopacket.Packet, flow *Flow) {
 
 	if networkLayer := packet.NetworkLayer(); networkLayer != nil {
-		flow.srcIP = networkLayer.NetworkFlow().Src().String()
-		flow.dstIP = networkLayer.NetworkFlow().Dst().String()
-		flow.networkProtocol = networkLayer.LayerType().String()
+		flow.SrcIP = networkLayer.NetworkFlow().Src().String()
+		flow.DstIP = networkLayer.NetworkFlow().Dst().String()
+		flow.NetworkProtocol = networkLayer.LayerType().String()
 	}
 
 	if transportLayer := packet.TransportLayer(); transportLayer != nil {
-		flow.srcPort = transportLayer.TransportFlow().Src().String()
-		flow.dstPort = transportLayer.TransportFlow().Dst().String()
-		flow.transportProtocol = transportLayer.LayerType().String()
+		flow.SrcPort = transportLayer.TransportFlow().Src().String()
+		flow.DstPort = transportLayer.TransportFlow().Dst().String()
+		flow.TransportProtocol = transportLayer.LayerType().String()
 	}
 }
 
 func main() {
+
+	conn, err := amqp.Dial("amqp://root:root@localhost:5672/")
+	if err != nil {
+		panic(err)
+	}
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	if err != nil {
+		panic(err)
+	}
+
+	q, err := ch.QueueDeclare(
+		"flow-queue", // name
+		false,        // durable
+		false,        // delete when unused
+		false,        // exclusive
+		false,        // no-wait
+		nil,          // arguments
+	)
+
 	handle, err = pcap.OpenLive(device, snapshotLen, promiscuous, timeout)
 	if err != nil {
 		log.Fatal(err)
@@ -63,7 +86,9 @@ func main() {
 
 	flowMap := map[string]Flow{}
 	flowCounter := 0
-L1:
+
+	fmt.Println("Listen for traffic on interface en1")
+
 	for packet := range packetSource.Packets() {
 
 		nl := packet.NetworkLayer()
@@ -76,36 +101,36 @@ L1:
 			packetTimeStamp := (int64)(packet.Metadata().Timestamp.UnixNano() / (1000 * 1000))
 
 			if flow, ok := flowMap[flowID]; ok {
-				if !(flow.timeStampFirst < packetTimeStamp) {
+				if !(flow.TimeStampFirst < packetTimeStamp) {
 
-					if flow.timeStampLast == 0 {
-						flow.timeStampLast = flow.timeStampFirst
+					if flow.TimeStampLast == 0 {
+						flow.TimeStampLast = flow.TimeStampFirst
 					}
 
-					flow.timeStampFirst = packetTimeStamp
-					flow.duration = flow.timeStampLast - flow.timeStampFirst
+					flow.TimeStampFirst = packetTimeStamp
+					flow.Duration = flow.TimeStampLast - flow.TimeStampFirst
 					addDataFromLayerToFlow(packet, &flow)
 				}
 
-				if flow.timeStampLast < packetTimeStamp {
-					flow.timeStampLast = packetTimeStamp
-					flow.duration = flow.timeStampLast - flow.timeStampFirst
+				if flow.TimeStampLast < packetTimeStamp {
+					flow.TimeStampLast = packetTimeStamp
+					flow.Duration = flow.TimeStampLast - flow.TimeStampFirst
 				}
 
-				flow.packetCount++
-				flow.totalPayloadByte += len(packet.Data())
+				flow.PacketCount++
+				flow.TotalPayloadByte += len(packet.Data())
 				flowMap[flowID] = flow
 			} else {
 				flow := Flow{}
-				flow.packetCount = 1
-				flow.totalPayloadByte = len(packet.Data())
-				flow.timeStampFirst = packetTimeStamp
+				flow.PacketCount = 1
+				flow.TotalPayloadByte = len(packet.Data())
+				flow.TimeStampFirst = packetTimeStamp
 
 				addDataFromLayerToFlow(packet, &flow)
 
 				if applicationLayer := packet.ApplicationLayer(); applicationLayer != nil {
-					flow.applicationProtocol = applicationLayer.LayerType().String()
-					flow.appplicationPayloadByte = len(applicationLayer.Payload())
+					flow.ApplicationProtocol = applicationLayer.LayerType().String()
+					flow.ApplicationPayloadByte = len(applicationLayer.Payload())
 				}
 
 				flowMap[flowID] = flow
@@ -113,15 +138,26 @@ L1:
 
 				if flowCounter%flushTime == 0 {
 					for flowKey, f := range flowMap {
-						fmt.Println(packetTimeStamp, f.timeStampLast, timeOut)
-						if f.timeStampLast != 0 && packetTimeStamp-f.timeStampLast > timeOut {
-							fmt.Printf("%v", f)
+						if f.TimeStampLast != 0 && packetTimeStamp-f.TimeStampLast > timeOut {
+							b, err := json.Marshal(&f)
+							if err != nil {
+								panic(err)
+							}
+
+							err = ch.Publish(
+								"",     // exchange
+								q.Name, // routing key
+								false,  // mandatory
+								false,  // immediate
+								amqp.Publishing{
+									ContentType: "application/json",
+									Body:        b,
+								})
 							delete(flowMap, flowKey)
 						}
 					}
-					break L1
 					// fmt.Println("%v", flowMap)
-					// flowCounter = 0
+					flowCounter = 0
 				}
 			}
 
