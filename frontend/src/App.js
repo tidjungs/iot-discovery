@@ -106,14 +106,14 @@ class App extends Component {
           <Card
             number={this.getStatisticByKey("classify_not_iot")}
             subTitle="Total NON-IOT Flows"
-            color="#2d64bc"
+            color="#426fb5"
             icon="non-iot"
             fontColor="white"
           />
           <Card
             number={this.getStatisticByKey("iot_ip_count")}
             subTitle="Total IOT IP Address"
-            color="#4B77BE"
+            color="#5c88ce"
             icon="iot"
             fontColor="black"
           />

@@ -14,6 +14,12 @@ export default class Example extends PureComponent {
           top: 40, right: 10, left: 50, bottom: 50,
         }}
       >
+        <defs>
+          <linearGradient id={`bar-color${this.props.color}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={this.props.color} stopOpacity={1} />
+            <stop offset="95%" stopColor={this.props.color} stopOpacity={0.6} />
+          </linearGradient>
+        </defs>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis
           dataKey="name"
@@ -30,7 +36,11 @@ export default class Example extends PureComponent {
           itemStyle={{ color: "white" }}
           contentStyle={{ background: "#1e2b38", color: this.props.color }}
         />
-        <Bar dataKey="count" fill={this.props.color} barSize={40} />
+        <Bar
+          dataKey="count"
+          barSize={40}
+          fill={`url(#bar-color${this.props.color})`}
+        />
       </BarChart>
     );
   }

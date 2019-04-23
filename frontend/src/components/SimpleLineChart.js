@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 import {
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line, Label
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, Area, Label, AreaChart
 } from 'recharts';
 
 
 export default class Chart extends Component {
   render() {
     return (
-      <LineChart
+      <AreaChart
         style={{
           // background: "#34495e",
           color: "white"
@@ -19,6 +19,16 @@ export default class Chart extends Component {
           top: 20, right: 40, left: 40, bottom: 10,
         }}
       >
+        <defs>
+          {
+            this.props.keys.map(key =>
+              <linearGradient id={`color${key.color}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={key.color} stopOpacity={0.6} />
+                <stop offset="95%" stopColor={key.color} stopOpacity={0} />
+              </linearGradient>
+            )
+          }
+        </defs>
         <CartesianGrid strokeDasharray="3 3" />
 
         <XAxis
@@ -42,16 +52,17 @@ export default class Chart extends Component {
         <Legend verticalAlign="top" iconSize={24} />
         {
           this.props.keys.map(key =>
-            <Line
+            <Area
               dot={false}
               strokeWidth={3}
               dataKey={key.name}
               stroke={key.color}
               fillOpacity={1}
+              fill={`url(#color${key.color})`}
             />
           )
         }
-      </LineChart >
+      </AreaChart >
     );
   }
 }
