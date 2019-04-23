@@ -4,6 +4,8 @@ const fastify = require('fastify')({
   logger: true
 })
 
+const { minifyTryCatch } = require('./helper')
+
 fastify.use(cors())
 
 const Flow = require('./models/Flow')
@@ -18,27 +20,29 @@ fastify.get('/', async (request, reply) => {
 
 fastify.get('/flow/time-series/:timeStampFirst/:timeStampLast', async (request, reply) => {
   const { timeStampFirst, timeStampLast } = request.params
+  const timeStampFirstInt = parseInt(timeStampFirst, 10)
+  const timeStampLastInt = parseInt(timeStampLast, 10)
 
-  if ((!timeStampFirst || !timeStampLast) || timeStampLast < timeStampFirst) {
+  if ((!timeStampFirstInt || !timeStampLastInt) || timeStampLastInt < timeStampFirstInt) {
     return {
       'error': 'Wrong time stamp first or time stamp last.'
     }
   }
 
-  const timeAggregate = await Flow.aggregate(
+  const [errorTimeAggregate, timeAggregate] = await minifyTryCatch(() => Flow.aggregate(
     [
       {
         $match: {
           $and:
             [
               {
-                "time_stamp_first": {
-                  '$gte': 1474500000000,
+                time_stamp_first: {
+                  $gte: timeStampFirstInt,
                 }
               },
               {
-                "time_stamp_last": {
-                  '$lte': 1474800000000
+                time_stamp_last: {
+                  $lte: timeStampLastInt
                 }
               },
             ]
@@ -78,7 +82,13 @@ fastify.get('/flow/time-series/:timeStampFirst/:timeStampLast', async (request, 
           },
         }
       }
-    ])
+    ]))
+
+  if (errorTimeAggregate) {
+    return {
+      "error": "Cannot query from MongoDB."
+    }
+  }
 
   const sortedTimeAggregate = timeAggregate
     .sort((a, b) => {
@@ -92,10 +102,37 @@ fastify.get('/flow/time-series/:timeStampFirst/:timeStampLast', async (request, 
     }))
 })
 
-fastify.get('/flow/stat', async (request, reply) => {
+fastify.get('/flow/stat/:timeStampFirst/:timeStampLast', async (request, reply) => {
 
-  const sumByIot = await Flow.aggregate(
+  const { timeStampFirst, timeStampLast } = request.params
+  const timeStampFirstInt = parseInt(timeStampFirst, 10)
+  const timeStampLastInt = parseInt(timeStampLast, 10)
+
+  if ((!timeStampFirstInt || !timeStampLastInt) || timeStampLastInt < timeStampFirstInt) {
+    return {
+      'error': 'Wrong time stamp first or time stamp last.'
+    }
+  }
+
+  const [errorSumByIot, sumByIot] = await minifyTryCatch(() => Flow.aggregate(
     [
+      {
+        $match: {
+          $and:
+            [
+              {
+                time_stamp_first: {
+                  $gte: timeStampFirstInt,
+                }
+              },
+              {
+                time_stamp_last: {
+                  $lte: timeStampLastInt
+                }
+              },
+            ]
+        }
+      },
       {
         $group: {
           _id: null,
@@ -125,9 +162,15 @@ fastify.get('/flow/stat', async (request, reply) => {
       },
       { $project: { _id: 0 } }
     ]
-  )
+  ))
 
-  const sumByDevice = await Flow.aggregate(
+  if (errorSumByIot) {
+    return {
+      "error": "Cannot query from MongoDB."
+    }
+  }
+
+  const [errorSubByDevice, sumByDevice] = await minifyTryCatch(() => Flow.aggregate(
     [
       {
         $group: {
@@ -136,7 +179,14 @@ fastify.get('/flow/stat', async (request, reply) => {
         }
       }
     ]
-  )
+  ))
+
+  if (errorSubByDevice) {
+    return {
+      "error": "Cannot query from MongoDB."
+    }
+  }
+
   const sumByIotReplaceIPSet = {
     ...sumByIot[0],
     iot_ip_count: sumByIot[0].iot_ip_set.length - 1,
