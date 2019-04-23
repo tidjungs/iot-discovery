@@ -16,9 +16,34 @@ fastify.get('/', async (request, reply) => {
   return { 'message': 'May the force be with you.' }
 })
 
-fastify.get('/flow/time-series', async (request, reply) => {
+fastify.get('/flow/time-series/:timeStampFirst/:timeStampLast', async (request, reply) => {
+  const { timeStampFirst, timeStampLast } = request.params
+
+  if ((!timeStampFirst || !timeStampLast) || timeStampLast < timeStampFirst) {
+    return {
+      'error': 'Wrong time stamp first or time stamp last.'
+    }
+  }
+
   const timeAggregate = await Flow.aggregate(
     [
+      {
+        $match: {
+          $and:
+            [
+              {
+                "time_stamp_first": {
+                  '$gte': 1474500000000,
+                }
+              },
+              {
+                "time_stamp_last": {
+                  '$lte': 1474800000000
+                }
+              },
+            ]
+        }
+      },
       {
         $group: {
           "_id": {
